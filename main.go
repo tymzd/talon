@@ -30,12 +30,10 @@ type Workout struct {
 }
 
 type Exercise struct {
-	Index              int    `json:"index"`
-	Title              string `json:"title"`
-	Notes              string `json:"notes"`
-	ExerciseTemplateID string `json:"exercise_template_id"`
-	SupersetID         *int   `json:"superset_id"` // Integer pointer to handle 'null'
-	Sets               []Set  `json:"sets"`
+	Index int    `json:"index"`
+	Title string `json:"title"`
+	Notes string `json:"notes"`
+	Sets  []Set  `json:"sets"`
 }
 
 type Set struct {
