@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"os"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -15,7 +16,11 @@ import (
 var schema string
 
 func InitDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite", "./talon_test.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./talon_test.db"
+	}
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
 	}

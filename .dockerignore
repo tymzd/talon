@@ -4,3 +4,4 @@ talon_test.db*
 .env
 dev-data/
 
+.git
