@@ -77,7 +77,13 @@ func UpsertWorkouts(db *sql.DB, workouts []Workout) error {
 	// Insert all workouts, exercises, and sets in the same transaction.
 	for _, w := range workouts {
 		// Upsert the workout.
-		_, err = insertWorkoutStmt.Exec(w.ID, w.Title, w.RoutineID, w.Description, w.StartTime, w.EndTime, w.UpdatedAt, w.CreatedAt)
+		_, err = insertWorkoutStmt.Exec(
+			w.ID, w.Title, w.RoutineID, w.Description,
+			w.StartTime.Format(time.RFC3339),
+			w.EndTime.Format(time.RFC3339),
+			w.UpdatedAt.Format(time.RFC3339),
+			w.CreatedAt.Format(time.RFC3339),
+		)
 		if err != nil {
 			return fmt.Errorf("failed to upsert workout: %w", err)
 		}
@@ -109,7 +115,7 @@ func UpsertWorkouts(db *sql.DB, workouts []Workout) error {
 }
 
 func MarkLastSynced(db *sql.DB, lastSynced time.Time) error {
-	_, err := db.Exec(`INSERT INTO sync_status (id, last_synced_at) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET last_synced_at = excluded.last_synced_at`, lastSynced)
+	_, err := db.Exec(`INSERT INTO sync_status (id, last_synced_at) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET last_synced_at = excluded.last_synced_at`, lastSynced.Format(time.RFC3339Nano))
 	if err != nil {
 		return fmt.Errorf("failed to mark last synced: %w", err)
 	}

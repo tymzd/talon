@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -42,7 +43,7 @@ func TestGetWorkoutsSince(t *testing.T) {
 	hevyBaseURL = fakeServer.URL
 	defer func() { hevyBaseURL = originalURL }()
 
-	workouts, err := getWorkoutsSince(context.Background(), "mock-api-key", time.Now())
+	workouts, err := getWorkoutsSince(context.Background(), slog.Default(), "mock-api-key", time.Now())
 	if err != nil {
 		t.Fatalf("getWorkoutsSince failed: %v", err)
 	}
