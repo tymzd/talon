@@ -43,4 +43,29 @@ func syncLatest(ctx context.Context, db *sql.DB, logger *slog.Logger, apiKey str
 	return nil
 }
 
-// TODO: Rate-limited full refresh loop.
+func syncFull(ctx context.Context, db *sql.DB, logger *slog.Logger, apiKey string) error {
+	startTime := time.Now()
+	logger.Info("Starting full sync")
+
+	// Retrieve workouts from Hevy since the beginning of time.
+	workouts, err := getWorkoutsSince(ctx, logger, apiKey, time.Time{})
+	if err != nil {
+		return fmt.Errorf("failed to retrieve workouts: %w", err)
+	}
+	if len(workouts) == 0 {
+		logger.Info("No workouts found in full sync")
+		return nil
+	}
+
+	// Commit all workouts to the database and set the last updated time.
+	logger.Info(fmt.Sprintf("Upserting %d workouts", len(workouts)))
+	if err := UpsertWorkouts(db, workouts); err != nil {
+		return fmt.Errorf("failed to commit workouts to database: %w", err)
+	}
+	if err := MarkLastSynced(db, startTime); err != nil {
+		return fmt.Errorf("failed to mark last synced: %w", err)
+	}
+
+	logger.Info(fmt.Sprintf("Full sync completed in %s", time.Since(startTime).String()))
+	return nil
+}

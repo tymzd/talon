@@ -31,23 +31,33 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	startContinuousLatestSync(ctx, db, logger, apiKey)
+	startContinuousSync(ctx, db, logger, apiKey)
 }
 
-func startContinuousLatestSync(ctx context.Context, db *sql.DB, logger *slog.Logger, apiKey string) {
+func startContinuousSync(ctx context.Context, db *sql.DB, logger *slog.Logger, apiKey string) {
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
 	if err := syncLatest(ctx, db, logger, apiKey); err != nil {
 		logger.Error("Failed to sync latest workouts", slog.Any("error", err))
 	}
+	hoursElapsed := 0
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := syncLatest(ctx, db, logger, apiKey); err != nil {
-				logger.Error("Failed to sync latest workouts", slog.Any("error", err))
+			hoursElapsed++
+			if hoursElapsed%24 == 0 {
+				hoursElapsed = 0
+				if err := syncFull(ctx, db, logger, apiKey); err != nil {
+					logger.Error("Failed to sync full workouts", slog.Any("error", err))
+				}
+			} else {
+				if err := syncLatest(ctx, db, logger, apiKey); err != nil {
+					logger.Error("Failed to sync latest workouts", slog.Any("error", err))
+				}
 			}
 		}
 	}
