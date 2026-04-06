@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -100,4 +101,12 @@ func UpsertWorkouts(db *sql.DB, workouts []Workout) error {
 	}
 
 	return tx.Commit()
+}
+
+func MarkLastSynced(db *sql.DB, lastSynced time.Time) error {
+	_, err := db.Exec(`INSERT INTO sync_status (id, last_synced_at) VALUES (1, ?) ON CONFLICT (id) DO UPDATE SET last_synced_at = excluded.last_synced_at`, lastSynced)
+	if err != nil {
+		return fmt.Errorf("failed to mark last synced: %w", err)
+	}
+	return nil
 }
