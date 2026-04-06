@@ -7,7 +7,16 @@ tl;dr:
 - Fetches all workouts from the Hevy API and stores them in a local SQLite database. Rate-limited to 1 QPS of outbound traffic.
 - Syncs your latest workouts every hour. Syncs your full workout history every 24 hours.
 
-## How to Run
+## Usage
+
+```sh
+docker run -d \
+    --restart unless-stopped \
+    -v talon_data:/data \
+    -e HEVY_API_KEY=your_api_key_uuid tymzd/talon:latest
+```
+
+## Local Development
 
 1. Ensure you have a `.env` file in the project root containing your API key:
    ```env
@@ -18,8 +27,3 @@ tl;dr:
    go run .
    ```
 3. Talon will initialise `talon_test.db` locally, inject the schema, enable WAL-mode, and immediately begin syncing your entire Hevy history.
-
-## Roadmap & TODOs
-
-- [ ] **REST Endpoints**: Eventually, support an RPC/HTTP endpoint to manually force a refresh without restarting the binary.
-- [ ] **Dockerisation**: Containerise exactly into a multi-stage `FROM scratch` Docker image for incredibly lightweight and reproducible deployments to a Raspberry Pi homelab.
