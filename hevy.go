@@ -10,9 +10,12 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 var hevyBaseURL = "https://api.hevyapp.com/v1"
+var limiter = rate.NewLimiter(rate.Every(1*time.Second), 1)
 
 func getWorkoutsSince(ctx context.Context, logger *slog.Logger, apiKey string, since time.Time) ([]Workout, error) {
 	params := url.Values{}
@@ -32,6 +35,11 @@ func getWorkoutsSince(ctx context.Context, logger *slog.Logger, apiKey string, s
 		}
 		req.Header.Set("accept", "application/json")
 		req.Header.Set("api-key", apiKey)
+
+		// Wait for the rate limiter to allow the request.
+		if err := limiter.Wait(ctx); err != nil {
+			return nil, fmt.Errorf("error waiting for rate limiter: %w", err)
+		}
 
 		client := &http.Client{}
 		resp, err := client.Do(req)
